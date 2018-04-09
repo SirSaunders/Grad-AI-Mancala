@@ -129,6 +129,10 @@ def getMove(pos, marbles, player, board):
 
 
 def findPoints(moveFromPos, board):
+    print('board')
+    print(board)
+    print('move from')
+    print(moveFromPos)
     moveSpace = board[moveFromPos]
     marbles = moveSpace['marbles']
     move = getMove(moveSpace['space_id'], marbles, moveSpace['player'], board)
@@ -136,11 +140,17 @@ def findPoints(moveFromPos, board):
     goAgainPoints = go_again_points(move, board)
     emptySpacePoints = empty_space_points(move, board)
     yourSideScore = move[2]
+    print('incrementMancalaPoints')
     print(incrementMancalaPoints)
+    print('goAgainPoints')
     print(goAgainPoints)
+    print('emptySpacePoints')
     print(emptySpacePoints)
+    print('yourSideScore')
     print(yourSideScore)
+    print('move info')
     print(move)
+    print('total move score')
     return incrementMancalaPoints + goAgainPoints + emptySpacePoints + yourSideScore
 
 
