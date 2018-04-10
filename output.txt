@@ -1,0 +1,16 @@
+board
+[{'player': 1, 'space_id': 0, 'type': 'mancala', 'marbles': 0}, {'player': 0, 'space_id': 1, 'type': 'normal', 'marbles': 4}, {'player': 0, 'space_id': 2, 'type': 'normal', 'marbles': 4}, {'player': 0, 'space_id': 3, 'type': 'normal', 'marbles': 4}, {'player': 0, 'space_id': 4, 'type': 'normal', 'marbles': 4}, {'player': 0, 'space_id': 5, 'type': 'normal', 'marbles': 4}, {'player': 0, 'space_id': 6, 'type': 'normal', 'marbles': 4}, {'player': 0, 'space_id': 7, 'type': 'mancala', 'marbles': 0}, {'player': 1, 'space_id': 8, 'type': 'normal', 'marbles': 4}, {'player': 1, 'space_id': 9, 'type': 'normal', 'marbles': 4}, {'player': 1, 'space_id': 10, 'type': 'normal', 'marbles': 4}, {'player': 1, 'space_id': 11, 'type': 'normal', 'marbles': 4}, {'player': 1, 'space_id': 12, 'type': 'normal', 'marbles': 4}, {'player': 1, 'space_id': 13, 'type': 'normal', 'marbles': 4}]
+move from
+3
+incrementMancalaPoints
+10
+goAgainPoints
+30
+emptySpacePoints
+0
+yourSideScore
+4
+move info
+(7, 1, 4)
+total move score
+44
