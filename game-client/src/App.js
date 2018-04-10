@@ -100,7 +100,33 @@ class App extends Component {
         this.moveSelected = this.moveSelected.bind(this);
 
   }
+    aiMove(){
+      var json = { "board": this.state.board}
 
+                var data = JSON.stringify(json);
+
+                  axios({
+                          baseURL: 'http://127.0.0.1:8000/get_move',
+                          timeout: 30000,
+                          headers: {'Content-Type': 'application/json'},
+                       data: data,
+                        method: 'post'
+                        })
+                      .then(function (response) {
+                        console.log(response);
+                        var board = this.state.board
+
+                          board.space = response.data.board.space
+                          console.log(board)
+                        this.setState({board:board})
+                          if(board.ai_goes_again){
+                            this.aiMove()
+                          }
+                      }.bind(this))
+                      .catch(function (error) {
+                        console.log(error);
+                      }.bind(this));
+    }
     moveSelected(move){
         var json = {"move":parseInt(move), "board": this.state.board}
 
@@ -119,6 +145,7 @@ class App extends Component {
                           board.space = response.data
                           console.log(board)
                         this.setState({board:board})
+                          this.aiMove()
                       }.bind(this))
                       .catch(function (error) {
                         console.log(error);
@@ -144,7 +171,7 @@ class App extends Component {
           </div>
 
       <div>
-                              {this.getButtons(8,13)}
+                {this.getButtons(8,13)}
 
         </div>
               <h1 style = {{"float":"right"}}> {this.state.board.space[7].marbles}</h1>

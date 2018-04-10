@@ -127,7 +127,7 @@ def getMove(pos, marbles, player, board):
     updatedBoard[currentPos]['marbles'] = 0
     if marbles == 0:
         return pos, 0, 0, board
-    for i in range(marbles+1):
+    for i in range(marbles):
         currentPos = (currentPos + 1) % boardLength
         space = board[currentPos]
         if space['player'] == player:
@@ -136,8 +136,10 @@ def getMove(pos, marbles, player, board):
             if space['player'] == player:
                 incrementedMancala += 1
                 updatedBoard[currentPos]['marbles'] += 1
-            # else:
-            #     currentPos = (currentPos + 1) % boardLength
+            else:
+                currentPos = (currentPos + 1) % boardLength
+                updatedBoard[currentPos]['marbles'] += 1
+
         else:
             updatedBoard[currentPos]['marbles'] += 1
 
@@ -216,5 +218,22 @@ def updateBoard():
     move = json['move']
 
     json = getMove(move, board[move]['marbles'], 1, board)[3]
+    return json
+
+@app.route('/get_move', methods=['POST'], cors=cors_config)
+def updateBoard():
+    app.log.debug('json')
+    json = app.current_request.json_body
+    board = json['board']['space']
+    move = findMove(json)
+    movePos = move[0]
+
+    json = {"board": {
+        "space": getMove(movePos, board[movePos]['marbles'], 0, board)[3]}}
+    ai_goes_again = False
+
+    if go_again_points(move, board) > 0:
+        ai_goes_again = True
+    json['ai_goes_again'] = ai_goes_again
 
     return json

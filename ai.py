@@ -167,7 +167,7 @@ def searchMovePoints(board, cnt, pos):
     (points, updatedboard) = findPoints(pos, board)
     bestPoints = 0
     worstPoints = 999999
-    if cnt > 4:
+    if cnt > -1:
         return points
     else:
         if ((cnt + 1) % 2) == 1: #max
