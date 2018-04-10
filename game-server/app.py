@@ -216,8 +216,13 @@ def updateBoard():
     app.log.debug(json)
     board = json['board']['space']
     move = json['move']
-
-    json = getMove(move, board[move]['marbles'], 1, board)[3]
+    landed = getMove(move, board[move]['marbles'], 1, board)
+    json = {"board": {
+        "space": landed[3]}}
+    go_again = False
+    if go_again_points(landed, board) > 0:
+        go_again = True
+    json['go_again'] = go_again
     return json
 
 @app.route('/get_move', methods=['POST'], cors=cors_config)
@@ -227,13 +232,12 @@ def updateBoard():
     board = json['board']['space']
     move = findMove(json)
     movePos = move[0]
-
+    landed = getMove(movePos, board[movePos]['marbles'], 0, board)
     json = {"board": {
-        "space": getMove(movePos, board[movePos]['marbles'], 0, board)[3]}}
-    ai_goes_again = False
-
-    if go_again_points(move, board) > 0:
-        ai_goes_again = True
-    json['ai_goes_again'] = ai_goes_again
+        "space": landed[3]}}
+    go_again = False
+    if go_again_points(landed, board) > 0:
+        go_again = True
+    json['go_again'] = go_again
 
     return json

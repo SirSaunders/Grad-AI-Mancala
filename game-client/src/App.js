@@ -119,7 +119,7 @@ class App extends Component {
                           board.space = response.data.board.space
                           console.log(board)
                         this.setState({board:board})
-                          if(board.ai_goes_again){
+                          if(response.data.go_again){
                             this.aiMove()
                           }
                       }.bind(this))
@@ -128,6 +128,7 @@ class App extends Component {
                       }.bind(this));
     }
     moveSelected(move){
+        console.log(move)
         var json = {"move":parseInt(move), "board": this.state.board}
 
                 var data = JSON.stringify(json);
@@ -142,10 +143,12 @@ class App extends Component {
                       .then(function (response) {
                         console.log(response);
                         var board = this.state.board
-                          board.space = response.data
+                          board.space = response.data.board.space
                           console.log(board)
                         this.setState({board:board})
-                          this.aiMove()
+                          if(!response.data.go_again) {
+                              this.aiMove()
+                          }
                       }.bind(this))
                       .catch(function (error) {
                         console.log(error);
@@ -156,7 +159,7 @@ class App extends Component {
    getButtons(rangestart,rangeEnd) {
         var returnBtns = [];
         for (var i = rangestart; i <= rangeEnd; i++){
-            returnBtns.push( <button id = {i} key={i} onClick={()=>this.moveSelected(4)}>{this.state.board.space[i].marbles}</button>)
+            returnBtns.push( <button id = {i} key={i} onClick={()=>this.moveSelected(10)}>{this.state.board.space[i].marbles}</button>)
         }
         return returnBtns;
 
@@ -165,16 +168,26 @@ class App extends Component {
 
     return (
       <div className="App" style ={{'width':'400px'}}>
-              <h1 style = {{"float":"left"}}> {this.state.board.space[0].marbles}</h1>
+              <h1 style = {{"float":"right"}}> {this.state.board.space[0].marbles}</h1>
           <div>
-                {this.getButtons(1,6)}
+               <button onClick={()=>this.moveSelected(6)}>{this.state.board.space[6].marbles}</button>
+              <button  onClick={()=>this.moveSelected(5)}>{this.state.board.space[5].marbles}</button>
+              <button  onClick={()=>this.moveSelected(4)}>{this.state.board.space[4].marbles}</button>
+              <button  onClick={()=>this.moveSelected(3)}>{this.state.board.space[3].marbles}</button>
+              <button  onClick={()=>this.moveSelected(2)}>{this.state.board.space[2].marbles}</button>
+              <button  onClick={()=>this.moveSelected(1)}>{this.state.board.space[1].marbles}</button>
           </div>
 
       <div>
-                {this.getButtons(8,13)}
+                <button  onClick={()=>this.moveSelected(8)}>{this.state.board.space[8].marbles}</button>
+              <button  onClick={()=>this.moveSelected(9)}>{this.state.board.space[9].marbles}</button>
+              <button  onClick={()=>this.moveSelected(10)}>{this.state.board.space[10].marbles}</button>
+              <button  onClick={()=>this.moveSelected(11)}>{this.state.board.space[11].marbles}</button>
+              <button  onClick={()=>this.moveSelected(12)}>{this.state.board.space[12].marbles}</button>
+              <button  onClick={()=>this.moveSelected(13)}>{this.state.board.space[13].marbles}</button>
 
         </div>
-              <h1 style = {{"float":"right"}}> {this.state.board.space[7].marbles}</h1>
+              <h1 style = {{"float":"left"}}> {this.state.board.space[7].marbles}</h1>
 
 
       </div>
