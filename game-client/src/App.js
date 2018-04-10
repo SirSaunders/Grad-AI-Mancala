@@ -115,17 +115,21 @@ class App extends Component {
                         })
                       .then(function (response) {
                         console.log(response);
-                      })
+                        var board = this.state.board
+                          board.space = response.data
+                          console.log(board)
+                        this.setState({board:board})
+                      }.bind(this))
                       .catch(function (error) {
                         console.log(error);
-                      });
+                      }.bind(this));
 
 
     }
    getButtons(rangestart,rangeEnd) {
         var returnBtns = [];
         for (var i = rangestart; i <= rangeEnd; i++){
-            returnBtns.push( <button id = {i}key={i.toString} onClick={()=>this.moveSelected(4)}>{this.state.board.space[i].marbles}</button>)
+            returnBtns.push( <button id = {i} key={i} onClick={()=>this.moveSelected(4)}>{this.state.board.space[i].marbles}</button>)
         }
         return returnBtns;
 

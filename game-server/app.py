@@ -1,14 +1,8 @@
 from chalice import Chalice
+
 cors_config = True
 
 app = Chalice(app_name='game-server')
-
-
-
-
-
-
-
 
 import copy
 
@@ -131,7 +125,9 @@ def getMove(pos, marbles, player, board):
     currentPos = pos
     yourSideScore = 0
     updatedBoard[currentPos]['marbles'] = 0
-    for i in range(marbles):
+    if marbles == 0:
+        return pos, 0, 0, board
+    for i in range(marbles+1):
         currentPos = (currentPos + 1) % boardLength
         space = board[currentPos]
         if space['player'] == player:
@@ -140,8 +136,8 @@ def getMove(pos, marbles, player, board):
             if space['player'] == player:
                 incrementedMancala += 1
                 updatedBoard[currentPos]['marbles'] += 1
-            else:
-                currentPos = (currentPos + 1) % boardLength
+            # else:
+            #     currentPos = (currentPos + 1) % boardLength
         else:
             updatedBoard[currentPos]['marbles'] += 1
 
@@ -214,11 +210,11 @@ def findMove(board):
 @app.route('/update_board', methods=['POST'], cors=cors_config)
 def updateBoard():
     app.log.debug('json')
-
     json = app.current_request.json_body
     app.log.debug(json)
     board = json['board']['space']
-    json = getMove(4, 4,1, board)[3]
+    move = json['move']
 
+    json = getMove(move, board[move]['marbles'], 1, board)[3]
 
     return json
