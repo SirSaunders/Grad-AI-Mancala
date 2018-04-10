@@ -1,3 +1,5 @@
+import copy
+
 board = {
     "board": {
         "space": [{
@@ -102,7 +104,7 @@ def empty_space_points(move, board):
     landedSpace = board[move[0]]
     if landedSpace['type'] != 'mancala' and landedSpace['marbles'] == 0:
         accrossSpace = board[int((move[0] + (boardLength / 2)) % boardLength)]
-        return accrossSpace['marbles'] * 10
+        return accrossSpace['marbles'] * 15
     else:
         return 0
 
@@ -112,9 +114,11 @@ def increment_mancala_points(move):
 
 
 def getMove(pos, marbles, player, board):
+    updatedBoard = copy.deepcopy(board)
     incrementedMancala = 0
     currentPos = pos
     yourSideScore = 0
+    updatedBoard[currentPos]['marbles'] = 0
     for i in range(marbles):
         currentPos = (currentPos + 1) % boardLength
         space = board[currentPos]
@@ -123,36 +127,78 @@ def getMove(pos, marbles, player, board):
         if (space['type'] == 'mancala'):
             if space['player'] == player:
                 incrementedMancala += 1
+                updatedBoard[currentPos]['marbles'] += 1
             else:
                 currentPos = (currentPos + 1) % boardLength
-    return currentPos, incrementedMancala, yourSideScore
+        else:
+            updatedBoard[currentPos]['marbles'] += 1
+
+    return currentPos, incrementedMancala, yourSideScore, updatedBoard
 
 
 def findPoints(moveFromPos, board):
-    print('board')
-    print(board)
-    print('move from')
-    print(moveFromPos)
+    # print('board')
+    # print(board)
+    # print('move from')
+    # print(moveFromPos)
     moveSpace = board[moveFromPos]
     marbles = moveSpace['marbles']
-    move = getMove(moveSpace['space_id'], marbles, moveSpace['player'], board)
+    # move = getMove(moveSpace['space_id'], marbles, moveSpace['player'], board)
+    move = getMove(moveSpace['space_id'], marbles, 0, board)
     incrementMancalaPoints = increment_mancala_points(move)
     goAgainPoints = go_again_points(move, board)
     emptySpacePoints = empty_space_points(move, board)
     yourSideScore = move[2]
-    print('incrementMancalaPoints')
-    print(incrementMancalaPoints)
-    print('goAgainPoints')
-    print(goAgainPoints)
-    print('emptySpacePoints')
-    print(emptySpacePoints)
-    print('yourSideScore')
-    print(yourSideScore)
-    print('move info')
-    print(move)
-    print('total move score')
-    return incrementMancalaPoints + goAgainPoints + emptySpacePoints + yourSideScore
+    # print('incrementMancalaPoints')
+    # print(incrementMancalaPoints)
+    # print('goAgainPoints')
+    # print(goAgainPoints)
+    # print('emptySpacePoints')
+    # print(emptySpacePoints)
+    # print('yourSideScore')
+    # print(yourSideScore)
+    # print('move info')
+    # print(move)
+    # print('total move score')
+    return (incrementMancalaPoints + goAgainPoints + emptySpacePoints + yourSideScore), move[3]
+
+
+def searchMovePoints(board, cnt, pos):
+    (points, updatedboard) = findPoints(pos, board)
+    bestPoints = 0
+    worstPoints = 999999
+    if cnt > 4:
+        return points
+    else:
+        if ((cnt + 1) % 2) == 1: #max
+            for i in range(1, 7):
+                points = searchMovePoints(updatedboard, cnt + 1, i)
+                if points > bestPoints:
+                    bestPoints = points
+            print('best:max')
+            print(bestPoints)
+            return points + bestPoints
+        else:
+            for i in range(8, 13):#min
+                points = searchMovePoints(updatedboard, cnt + 1, i)
+                if points < worstPoints:
+                    worstPoints = points
+            print('worst:min')
+            print(worstPoints)
+            return points + worstPoints
+
+
+def findMove(board):
+    bestPoints = 0
+    bestMove = 1
+    for i in range(1, 7):
+        points = searchMovePoints(board['board']['space'], 0, i)
+        if points > bestPoints:
+            bestPoints = points
+            bestMove = i
+    return bestMove, bestPoints
 
 
 if __name__ == '__main__':
-    print(findPoints(3,board['board']['space']))
+    print(findMove(board))
+    # print(searchMovePoints(board['board']['space'], 0, 1))
