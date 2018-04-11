@@ -6,7 +6,7 @@ app = Chalice(app_name='game-server')
 
 import copy
 
-
+com_player = 0
 
 boardLength = 14
 
@@ -14,19 +14,20 @@ boardLength = 14
 def go_again_points(move, board):
     landedSpace = board[move[0]]
     if landedSpace['type'] == 'mancala':
-        return 60
+        return 20
     return 0
 
 
 def empty_space_points(move, board):
     landedSpace = board[move[0]]
     player=board[move[0]]['player']
-
-    if landedSpace['type'] != 'mancala' and landedSpace['marbles'] == 1 and landedSpace['player'] == player:
+    score = 0
+    if landedSpace['type'] != 'mancala' and landedSpace['marbles'] == 0 and landedSpace['player'] == player:
         accrossSpace = board[int((move[0] + (boardLength / 2)) % boardLength)]
-        return accrossSpace['marbles'] * 30
-    else:
-        return 0
+        if(player == com_player):
+            score = accrossSpace['marbles'] * 10
+
+    return score
 
 
 def increment_mancala_points(move):
@@ -47,6 +48,8 @@ def getMove(pos, marbles, player, board):
         space = board[currentPos]
         if space['player'] == player:
             yourSideScore += 1
+        else:
+            yourSideScore -= 1
         if space['type'] == 'mancala':
             if space['player'] == player:
                 incrementedMancala += 1
@@ -56,17 +59,16 @@ def getMove(pos, marbles, player, board):
                 updatedBoard[currentPos]['marbles'] += 1
         else:
             updatedBoard[currentPos]['marbles'] += 1
-        landedSpace = updatedBoard[currentPos]
-        print(landedSpace)
+    landedSpace = updatedBoard[currentPos]
     if landedSpace['type'] != 'mancala' and landedSpace['marbles'] == 1 and landedSpace['player'] == player:
         accrossSpace = updatedBoard[int((boardLength - currentPos ) % boardLength)]
-        #print(accrossSpace)
-        if(player == 0):
-            updatedBoard[7]['marbles'] += accrossSpace['marbles'] + 1
-        else:
-            updatedBoard[0]['marbles'] += accrossSpace['marbles'] + 1
-        updatedBoard[accrossSpace['space_id']]['marbles'] = 0
-        updatedBoard[currentPos]['marbles'] = 0
+        if(accrossSpace['marbles']>0):
+            if(player == 0):
+                updatedBoard[7]['marbles'] += accrossSpace['marbles'] + 1
+            else:
+                updatedBoard[0]['marbles'] += accrossSpace['marbles'] + 1
+            updatedBoard[accrossSpace['space_id']]['marbles'] = 0
+            updatedBoard[currentPos]['marbles'] = 0
 
     return currentPos, incrementedMancala, yourSideScore, updatedBoard
 
@@ -99,39 +101,43 @@ def findPoints(moveFromPos, board):
     return (incrementMancalaPoints + goAgainPoints + yourSideScore + emptySpacePoints), move[3]
 
 
-def searchMovePoints(board, cnt, pos):
+def searchMovePoints(board, cnt, pos, score):
     (points, updatedboard) = findPoints(pos, board)
-    bestPoints = 0
     worstPoints = 999999
-    if cnt > 2:
+    maxDepth = 4
+    bestPoints = 0
+
+    if cnt >= maxDepth:
         return points
     else:
         if ((cnt + 1) % 2) == 1:  # max
             for i in range(1, 7):
-                points = searchMovePoints(updatedboard, cnt + 1, i)
+                points = searchMovePoints(updatedboard, cnt + 1, i,points)
                 if points > bestPoints:
-                    bestPoints = points
+                    bestPoints = points * (maxDepth - cnt+1)
             # print('best:max')
             # print(bestPoints)
-            return points + bestPoints
+            return bestPoints + score
         else:
             for i in range(8, 13):  # min
-                points = searchMovePoints(updatedboard, cnt + 1, i)
-                if points < worstPoints:
-                    worstPoints = points
+
+                points = searchMovePoints(updatedboard, cnt + 1, i,points)
+                if points < bestPoints:
+                    bestPoints = points
             # print('worst:min')
             # print(worstPoints)
-            return points + worstPoints
+            return bestPoints + score
 
 
 def findMove(board):
-    bestPoints = 0
+    bestPoints = -99999999
     bestMove = 1
     for i in range(1, 7):
         if not (board['board']['space'][i]['marbles'] > 0):
             points = -1
         else:
-            points = searchMovePoints(board['board']['space'], 0, i)
+            points = searchMovePoints(board['board']['space'], 0, i, 0)
+            print(points)
         if points > bestPoints:
             bestPoints = points
             bestMove = i
