@@ -6,95 +6,7 @@ app = Chalice(app_name='game-server')
 
 import copy
 
-board = {
-    "board": {
-        "space": [{
-            "type": "mancala",
-            "marbles": 0,
-            "space_id": 0,
-            "player": 1
-        },
-            {
-                "type": "normal",
-                "marbles": 4,
-                "space_id": 1,
-                "player": 0
-            },
-            {
-                "type": "normal",
-                "marbles": 4,
-                "space_id": 2,
-                "player": 0
-            },
-            {
-                "type": "normal",
-                "marbles": 4,
-                "space_id": 3,
-                "player": 0
-            },
-            {
-                "type": "normal",
-                "marbles": 4,
-                "space_id": 4,
-                "player": 0
-            },
-            {
-                "type": "normal",
-                "marbles": 4,
-                "space_id": 5,
-                "player": 0
-            },
-            {
-                "type": "normal",
-                "marbles": 4,
-                "space_id": 6,
-                "player": 0
-            },
-            {
-                "type": "mancala",
-                "marbles": 0,
-                "space_id": 7,
-                "player": 0
-            },
-            {
-                "type": "normal",
-                "marbles": 4,
-                "space_id": 8,
-                "player": 1
-            },
-            {
-                "type": "normal",
-                "marbles": 4,
-                "space_id": 9,
-                "player": 1
-            },
-            {
-                "type": "normal",
-                "marbles": 4,
-                "space_id": 10,
-                "player": 1
-            },
-            {
-                "type": "normal",
-                "marbles": 4,
-                "space_id": 11,
-                "player": 1
-            },
-            {
-                "type": "normal",
-                "marbles": 4,
-                "space_id": 12,
-                "player": 1
-            },
-            {
-                "type": "normal",
-                "marbles": 4,
-                "space_id": 13,
-                "player": 1
-            }
-        ]
-    }
-}
+
 
 boardLength = 14
 
@@ -102,7 +14,7 @@ boardLength = 14
 def go_again_points(move, board):
     landedSpace = board[move[0]]
     if landedSpace['type'] == 'mancala':
-        return 30
+        return 60
     return 0
 
 
@@ -110,7 +22,7 @@ def empty_space_points(move, board):
     landedSpace = board[move[0]]
     if landedSpace['type'] != 'mancala' and landedSpace['marbles'] == 0:
         accrossSpace = board[int((move[0] + (boardLength / 2)) % boardLength)]
-        return accrossSpace['marbles'] * 15
+        return accrossSpace['marbles'] * 30
     else:
         return 0
 
@@ -157,7 +69,7 @@ def findPoints(moveFromPos, board):
     move = getMove(moveSpace['space_id'], marbles, 0, board)
     incrementMancalaPoints = increment_mancala_points(move)
     goAgainPoints = go_again_points(move, board)
-    emptySpacePoints = empty_space_points(move, board)
+    #emptySpacePoints = empty_space_points(move, board)
     yourSideScore = move[2]
     # print('incrementMancalaPoints')
     # print(incrementMancalaPoints)
@@ -170,7 +82,8 @@ def findPoints(moveFromPos, board):
     # print('move info')
     # print(move)
     # print('total move score')
-    return (incrementMancalaPoints + goAgainPoints + emptySpacePoints + yourSideScore), move[3]
+    # + emptySpacePoints
+    return (incrementMancalaPoints + goAgainPoints  + yourSideScore), move[3]
 
 
 def searchMovePoints(board, cnt, pos):
@@ -202,7 +115,10 @@ def findMove(board):
     bestPoints = 0
     bestMove = 1
     for i in range(1, 7):
-        points = searchMovePoints(board['board']['space'], 0, i)
+        if not (board['board']['space'][i]['marbles'] > 0):
+            points = -1
+        else:
+            points = searchMovePoints(board['board']['space'], 0, i)
         if points > bestPoints:
             bestPoints = points
             bestMove = i
@@ -239,5 +155,6 @@ def updateBoard():
     if go_again_points(landed, board) > 0:
         go_again = True
     json['go_again'] = go_again
+    print(move)
 
     return json
