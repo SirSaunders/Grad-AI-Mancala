@@ -20,7 +20,9 @@ def go_again_points(move, board):
 
 def empty_space_points(move, board):
     landedSpace = board[move[0]]
-    if landedSpace['type'] != 'mancala' and landedSpace['marbles'] == 0:
+    player=board[move[0]]['player']
+
+    if landedSpace['type'] != 'mancala' and landedSpace['marbles'] == 1 and landedSpace['player'] == player:
         accrossSpace = board[int((move[0] + (boardLength / 2)) % boardLength)]
         return accrossSpace['marbles'] * 30
     else:
@@ -36,6 +38,7 @@ def getMove(pos, marbles, player, board):
     incrementedMancala = 0
     currentPos = pos
     yourSideScore = 0
+    player=board[pos]['player']
     updatedBoard[currentPos]['marbles'] = 0
     if marbles == 0:
         return pos, 0, 0, board
@@ -44,16 +47,26 @@ def getMove(pos, marbles, player, board):
         space = board[currentPos]
         if space['player'] == player:
             yourSideScore += 1
-        if (space['type'] == 'mancala'):
+        if space['type'] == 'mancala':
             if space['player'] == player:
                 incrementedMancala += 1
                 updatedBoard[currentPos]['marbles'] += 1
             else:
                 currentPos = (currentPos + 1) % boardLength
                 updatedBoard[currentPos]['marbles'] += 1
-
         else:
             updatedBoard[currentPos]['marbles'] += 1
+        landedSpace = updatedBoard[currentPos]
+        print(landedSpace)
+    if landedSpace['type'] != 'mancala' and landedSpace['marbles'] == 1 and landedSpace['player'] == player:
+        accrossSpace = updatedBoard[int((boardLength - currentPos ) % boardLength)]
+        #print(accrossSpace)
+        if(player == 0):
+            updatedBoard[7]['marbles'] += accrossSpace['marbles'] + 1
+        else:
+            updatedBoard[0]['marbles'] += accrossSpace['marbles'] + 1
+        updatedBoard[accrossSpace['space_id']]['marbles'] = 0
+        updatedBoard[currentPos]['marbles'] = 0
 
     return currentPos, incrementedMancala, yourSideScore, updatedBoard
 
@@ -69,7 +82,7 @@ def findPoints(moveFromPos, board):
     move = getMove(moveSpace['space_id'], marbles, 0, board)
     incrementMancalaPoints = increment_mancala_points(move)
     goAgainPoints = go_again_points(move, board)
-    #emptySpacePoints = empty_space_points(move, board)
+    emptySpacePoints = empty_space_points(move, board)
     yourSideScore = move[2]
     # print('incrementMancalaPoints')
     # print(incrementMancalaPoints)
@@ -82,15 +95,15 @@ def findPoints(moveFromPos, board):
     # print('move info')
     # print(move)
     # print('total move score')
-    # + emptySpacePoints
-    return (incrementMancalaPoints + goAgainPoints  + yourSideScore), move[3]
+
+    return (incrementMancalaPoints + goAgainPoints + yourSideScore + emptySpacePoints), move[3]
 
 
 def searchMovePoints(board, cnt, pos):
     (points, updatedboard) = findPoints(pos, board)
     bestPoints = 0
     worstPoints = 999999
-    if cnt > 4:
+    if cnt > 2:
         return points
     else:
         if ((cnt + 1) % 2) == 1:  # max
@@ -98,16 +111,16 @@ def searchMovePoints(board, cnt, pos):
                 points = searchMovePoints(updatedboard, cnt + 1, i)
                 if points > bestPoints:
                     bestPoints = points
-            print('best:max')
-            print(bestPoints)
+            # print('best:max')
+            # print(bestPoints)
             return points + bestPoints
         else:
             for i in range(8, 13):  # min
                 points = searchMovePoints(updatedboard, cnt + 1, i)
                 if points < worstPoints:
                     worstPoints = points
-            print('worst:min')
-            print(worstPoints)
+            # print('worst:min')
+            # print(worstPoints)
             return points + worstPoints
 
 
