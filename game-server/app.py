@@ -9,7 +9,9 @@ import copy
 com_player = 0
 
 boardLength = 14
-
+# AI and Human's mancala positions
+mancalaAI = 0
+mancalaHuman = 7
 
 def go_again_points(move, board):
     landedSpace = board[move[0]]
@@ -72,6 +74,18 @@ def getMove(pos, marbles, player, board):
 
     return currentPos, incrementedMancala, yourSideScore, updatedBoard
 
+# get a more accurate score of which player is in a better position to win
+# include method to get a better "score" of game: 2 * (marbles in mancala) + sum of marbles on your side
+def getBetterScore(board):
+    # initialized to current mancala marbles count
+    player1Score = board['space'][mancalaHuman]['marbles']
+    player2Score = board['space'][mancalaAI]['marbles']
+    for space in board:
+        if space['player'] == 0:
+            player1Score += space['marbles']
+        if space['player'] == 1:
+            player2Score += space['marbles']
+    return player1Score, player2Score
 
 def findPoints(moveFromPos, board):
     # print('board')
