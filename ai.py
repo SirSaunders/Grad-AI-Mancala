@@ -135,6 +135,10 @@ def getMove(pos, marbles, player, board):
 
     return currentPos, incrementedMancala, yourSideScore, updatedBoard
 
+# get a more accurate score of which player is in a better position to win
+# include method to get a better "score" of game: 1.2* (marbles in mancala) + sum of marbles on your side
+def getBetterScore(board):
+    True
 
 def findPoints(moveFromPos, board):
     # print('board')
