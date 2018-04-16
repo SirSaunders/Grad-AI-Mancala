@@ -104,7 +104,7 @@ def findPoints(moveFromPos, board):
 def searchMovePoints(board, cnt, pos, score):
     (points, updatedboard) = findPoints(pos, board)
     worstPoints = 999999
-    maxDepth = 4
+    maxDepth = 6
     bestPoints = 0
 
     if cnt >= maxDepth:

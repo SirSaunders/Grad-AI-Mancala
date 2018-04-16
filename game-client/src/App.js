@@ -93,7 +93,8 @@ class App extends Component {
                     "player": 1
                 }
                 ]
-            }
+            },
+            "isAiTurn":false
         }
 
         this.getButtons = this.getButtons.bind(this);
@@ -101,6 +102,7 @@ class App extends Component {
 
     }
     aiMove() {
+        this.setState({"isAiTurn":true})
         var json = { "board": this.state.board }
 
         var data = JSON.stringify(json);
@@ -121,6 +123,8 @@ class App extends Component {
                 this.setState({ board: board })
                 if (response.data.go_again) {
                     this.aiMove()
+                }else{
+                    this.setState({"isAiTurn":false})
                 }
             }.bind(this))
             .catch(function (error) {
@@ -128,32 +132,34 @@ class App extends Component {
             }.bind(this));
     }
     moveSelected(move) {
-        console.log(move)
-        var json = { "move": parseInt(move), "board": this.state.board }
+        if (!this.state.isAiTurn) {
 
-        var data = JSON.stringify(json);
+            console.log(move)
+            var json = {"move": parseInt(move), "board": this.state.board}
 
-        axios({
-            baseURL: 'http://127.0.0.1:8000/update_board',
-            timeout: 30000,
-            headers: { 'Content-Type': 'application/json' },
-            data: data,
-            method: 'post'
-        })
-            .then(function (response) {
-                console.log(response);
-                var board = this.state.board
-                board.space = response.data.board.space
-                console.log(board)
-                this.setState({ board: board })
-                if (!response.data.go_again) {
-                    this.aiMove()
-                }
-            }.bind(this))
-            .catch(function (error) {
-                console.log(error);
-            }.bind(this));
+            var data = JSON.stringify(json);
 
+            axios({
+                baseURL: 'http://127.0.0.1:8000/update_board',
+                timeout: 30000,
+                headers: {'Content-Type': 'application/json'},
+                data: data,
+                method: 'post'
+            })
+                .then(function (response) {
+                    console.log(response);
+                    var board = this.state.board
+                    board.space = response.data.board.space
+                    console.log(board)
+                    this.setState({board: board})
+                    if (!response.data.go_again) {
+                        this.aiMove()
+                    }
+                }.bind(this))
+                .catch(function (error) {
+                    console.log(error);
+                }.bind(this));
+        }
 
     }
     getButtons(rangestart, rangeEnd) {
@@ -173,21 +179,28 @@ class App extends Component {
 
         return (
             
-            <div className="App" style={{ 'width': '400px' }}>
+            <div className="App" style={{ 'width': '400px',
+                margin: "auto",
+                width: "50%",
+                border: "3px solid green",
+                padding: "10px",
+                backgroundColor:"#e3eff2",
+                marginTop:"30vh"
+            }}>
             {/* <img src={logo} className="App-logo" alt="logo" /> */}
                 <h1 style={{ "float": "left" }}> AI:&nbsp;</h1>
                 <h1 style={{ "float": "left" }}> {this.state.board.space[7].marbles}</h1>                
 
                 <h1 style={{ "float": "right" }}> {this.state.board.space[0].marbles}</h1>
-                <h1 style={{ "float": "right" }}> Me:&nbsp; </h1>
+                <h1 style={{ "float": "right" }}> You:&nbsp; </h1>
 
                 <div style={{'paddingTop': '20px'}}>
-                    <button onClick={() => this.moveSelected(6)}>{this.state.board.space[6].marbles}</button>
-                    <button onClick={() => this.moveSelected(5)}>{this.state.board.space[5].marbles}</button>
-                    <button onClick={() => this.moveSelected(4)}>{this.state.board.space[4].marbles}</button>
-                    <button onClick={() => this.moveSelected(3)}>{this.state.board.space[3].marbles}</button>
-                    <button onClick={() => this.moveSelected(2)}>{this.state.board.space[2].marbles}</button>
-                    <button onClick={() => this.moveSelected(1)}>{this.state.board.space[1].marbles}</button>
+                    <button>{this.state.board.space[6].marbles}</button>
+                    <button>{this.state.board.space[5].marbles}</button>
+                    <button>{this.state.board.space[4].marbles}</button>
+                    <button >{this.state.board.space[3].marbles}</button>
+                    <button >{this.state.board.space[2].marbles}</button>
+                    <button >{this.state.board.space[1].marbles}</button>
                 </div>
 
                 <div>
@@ -197,6 +210,13 @@ class App extends Component {
                     <button onClick={() => this.moveSelected(11)}>{this.state.board.space[11].marbles}</button>
                     <button onClick={() => this.moveSelected(12)}>{this.state.board.space[12].marbles}</button>
                     <button onClick={() => this.moveSelected(13)}>{this.state.board.space[13].marbles}</button>
+                </div>
+
+                <div>  {(this.state.isAiTurn)?
+                    <img width={100} src = "https://media.giphy.com/media/xTk9ZvMnbIiIew7IpW/giphy.gif"/>
+                    :
+                    <h1>Your Turn</h1>
+                    }
 
                 </div>
 
