@@ -13,7 +13,6 @@ boardLength = 14
 mancalaAI = 0
 mancalaHuman = 7
 
-
 board = {
     "board": {
         "space": [{
@@ -66,43 +65,44 @@ board = {
             },
             {
                 "type": "normal",
-                "marbles": 4,
+                "marbles": 0,
                 "space_id": 8,
                 "player": 1
             },
             {
                 "type": "normal",
-                "marbles": 4,
+                "marbles": 0,
                 "space_id": 9,
                 "player": 1
             },
             {
                 "type": "normal",
-                "marbles": 4,
+                "marbles": 0,
                 "space_id": 10,
                 "player": 1
             },
             {
                 "type": "normal",
-                "marbles": 4,
+                "marbles": 0,
                 "space_id": 11,
                 "player": 1
             },
             {
                 "type": "normal",
-                "marbles": 4,
+                "marbles": 0,
                 "space_id": 12,
                 "player": 1
             },
             {
                 "type": "normal",
-                "marbles": 4,
+                "marbles": 0,
                 "space_id": 13,
                 "player": 1
             }
         ]
     }
 }
+
 
 def go_again_points(move, board):
     landedSpace = board[move[0]]
@@ -127,6 +127,23 @@ def increment_mancala_points(move):
     return 10 * move[1]
 
 
+# return the player with the higher mancala score and the score itself
+def findWinner(board):
+    maxScore = 0
+    player1Score = board['space'][mancalaHuman]['marbles']
+    player2Score = board['space'][mancalaAI]['marbles']
+    if player1Score > player2Score:
+        maxScore = player1Score
+        winner = "Human"
+    elif player2Score > player1Score:
+        maxScore = player2Score
+        winner = "AI"
+    else:
+        maxScore = player1Score
+        winner = "Tie"
+    return maxScore, winner
+
+
 def getMove2(pos, board):
     space = board[pos]
     return getMove(pos, space['marbles'], board)
@@ -139,6 +156,8 @@ def getMove(pos, marbles, board):
     yourSideScore = 0
     player = board[pos]['player']
     updatedBoard[currentPos]['marbles'] = 0
+    winnerDetails = None
+
     if marbles == 0:
         return pos, 0, 0, board
     for i in range(marbles):
@@ -167,8 +186,19 @@ def getMove(pos, marbles, board):
                 updatedBoard[0]['marbles'] += accrossSpace['marbles'] + 1
             updatedBoard[accrossSpace['space_id']]['marbles'] = 0
             updatedBoard[currentPos]['marbles'] = 0
+    boardScore = getBoardScore(board)
+    winnerDetails = None
+    if boardScore[0] == 9999999 or boardScore[1] == 9999999:
+        if boardScore[0] == 9999999 and boardScore[1] == 9999999:
+            winnerDetails = 'tie'
+        elif boardScore[0] == 9999999:
+            winnerDetails = 'AI'
+        elif boardScore[1] == 9999999:
+            winnerDetails = 'player'
+        print(boardScore)
+        print(winnerDetails)
 
-    return currentPos, incrementedMancala, yourSideScore, updatedBoard
+    return currentPos, incrementedMancala, yourSideScore, updatedBoard, winnerDetails
 
 
 # get a more accurate score of which player is in a better position to win
@@ -177,11 +207,11 @@ def getBoardScore(board):
     # initialized to current mancala marbles count
     # player1Score = board['space'][mancalaHuman]['marbles']
     # player2Score = board['space'][mancalaAI]['marbles']
-    mancala1 = 0.5*board[mancalaAI]['marbles']
-    mancala2 = 0.5*board[mancalaHuman]['marbles']
+    mancala1 = 0.5 * board[mancalaAI]['marbles']
+    mancala2 = 0.5 * board[mancalaHuman]['marbles']
     player1Score = mancala1
     player2Score = mancala2
-    nonMancalPointsPlayer1 = 0 #AI
+    nonMancalPointsPlayer1 = 0  # AI
     nonMancalPointsPlayer2 = 0
 
     for space in board:
@@ -194,14 +224,14 @@ def getBoardScore(board):
             if space['type'] == 'normal':
                 nonMancalPointsPlayer2 += space['marbles']
     if nonMancalPointsPlayer1 == 0 or nonMancalPointsPlayer2 == 0:
-            if player1Score - mancala1 < 24:
-                player1Score = -99999999
-            else:
-                player1Score = 9999999
-            if player2Score - mancala2 < 24:
-                player2Score = -99999999
-            else:
-                player2Score = 9999999
+        if player1Score - mancala1 < 24:
+            player1Score = -99999999
+        else:
+            player1Score = 9999999
+        if player2Score - mancala2 < 24:
+            player2Score = -99999999
+        else:
+            player2Score = 9999999
     return player1Score, player2Score
 
 
@@ -298,7 +328,7 @@ def findMove(board):
             points = -1
         else:
             points = searchMovePoints(board['board']['space'], 0, i, 0)
-            points += minMaxMove(board['board']['space'], 0, i)*4
+            points += minMaxMove(board['board']['space'], 0, i) * 4
             print(points)
         if points > bestPoints:
             bestPoints = points
@@ -320,6 +350,7 @@ def updateBoard():
     if go_again_points(landed, board) > 0:
         go_again = True
     json['go_again'] = go_again
+    json['winner'] = landed[4]
     return json
 
 
@@ -337,8 +368,11 @@ def updateBoard():
     if go_again_points(landed, board) > 0:
         go_again = True
     json['go_again'] = go_again
+    json['winner'] = landed[4]
+
     print(move)
 
     return json
+
 
 findMove(board)
