@@ -66,37 +66,37 @@ board = {
             },
             {
                 "type": "normal",
-                "marbles": 4,
+                "marbles":0,
                 "space_id": 8,
                 "player": 1
             },
             {
                 "type": "normal",
-                "marbles": 4,
+                "marbles": 0,
                 "space_id": 9,
                 "player": 1
             },
             {
                 "type": "normal",
-                "marbles": 4,
+                "marbles": 0,
                 "space_id": 10,
                 "player": 1
             },
             {
                 "type": "normal",
-                "marbles": 4,
+                "marbles": 0,
                 "space_id": 11,
                 "player": 1
             },
             {
                 "type": "normal",
-                "marbles": 4,
+                "marbles": 0,
                 "space_id": 12,
                 "player": 1
             },
             {
                 "type": "normal",
-                "marbles": 4,
+                "marbles": 0,
                 "space_id": 13,
                 "player": 1
             }
@@ -184,9 +184,15 @@ def getMove(pos, marbles, board):
                 updatedBoard[0]['marbles'] += accrossSpace['marbles'] + 1
             updatedBoard[accrossSpace['space_id']]['marbles'] = 0
             updatedBoard[currentPos]['marbles'] = 0
-
-    if isGameDone(board, 1, 7) or isGameDone(board, 8, 13):
-        winnerDetails = findWinner(board)
+    boardScore = getBoardScore(board)
+    winnerDetails = 'none'
+    if boardScore[0] == 9999999 or boardScore[1] == 9999999:
+        if(boardScore[0] == 9999999 and boardScore[0] == 9999999):
+            winnerDetails =  'tie'
+        elif boardScore[0] == 9999999:
+            winnerDetails = 'AI'
+        elif boardScore[0] == 9999999:
+            winnerDetails =  'player'
 
     return currentPos, incrementedMancala, yourSideScore, updatedBoard, winnerDetails
 
@@ -357,6 +363,8 @@ def updateBoard():
     if go_again_points(landed, board) > 0:
         go_again = True
     json['go_again'] = go_again
+    json['winner'] = landed[4]
+
     print(move)
 
     return json
