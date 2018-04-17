@@ -177,14 +177,31 @@ def getBoardScore(board):
     # initialized to current mancala marbles count
     # player1Score = board['space'][mancalaHuman]['marbles']
     # player2Score = board['space'][mancalaAI]['marbles']
-    player1Score = 1.2*board[mancalaHuman]['marbles']
-    player2Score = 1.2*board[mancalaAI]['marbles']
+    mancala1 = 0.5*board[mancalaAI]['marbles']
+    mancala2 = 0.5*board[mancalaHuman]['marbles']
+    player1Score = mancala1
+    player2Score = mancala2
+    nonMancalPointsPlayer1 = 0 #AI
+    nonMancalPointsPlayer2 = 0
 
     for space in board:
         if space['player'] == 0:
             player1Score += space['marbles']
+            if space['type'] == 'normal':
+                nonMancalPointsPlayer1 += space['marbles']
         if space['player'] == 1:
             player2Score += space['marbles']
+            if space['type'] == 'normal':
+                nonMancalPointsPlayer2 += space['marbles']
+    if nonMancalPointsPlayer1 == 0 or nonMancalPointsPlayer2 == 0:
+            if player1Score - mancala1 < 24:
+                player1Score = -99999999
+            else:
+                player1Score = 9999999
+            if player2Score - mancala2 < 24:
+                player2Score = -99999999
+            else:
+                player2Score = 9999999
     return player1Score, player2Score
 
 
@@ -219,7 +236,7 @@ def findPoints(moveFromPos, board):
 def searchMovePoints(board, cnt, pos, score):
     (points, updatedboard) = findPoints(pos, board)
     worstPoints = 999999
-    maxDepth = 2
+    maxDepth = 3
     bestPoints = 0
     if (go_again_points([pos], updatedboard) > 0):
         cnt -= 1  # increment back 1 so when it is incremented up no changes occurs
@@ -255,7 +272,8 @@ def minMaxMove(board, cnt, pos):
     if (go_again_points([pos], updatedboard) > 0):
         cnt -= 1  # increment back 1 so when it is incremented up no changes occurs
     if cnt >= maxDepth:
-        return getBoardScore(updatedboard)[0]
+        points = getBoardScore(updatedboard)[0]
+        return points
     else:
         if ((cnt + 1) % 2) == 1:  # max
             for i in range(1, 7):
@@ -279,8 +297,8 @@ def findMove(board):
         if not (board['board']['space'][i]['marbles'] > 0):
             points = -1
         else:
-            #points = searchMovePoints(board['board']['space'], 0, i, 0)
-            points = minMaxMove(board['board']['space'], 0, i)*2
+            points = searchMovePoints(board['board']['space'], 0, i, 0)
+            points += minMaxMove(board['board']['space'], 0, i)*4
 
             print(points)
         if points > bestPoints:
@@ -326,4 +344,4 @@ def updateBoard():
 
 
 
-#findMove(board)
+findMove(board)

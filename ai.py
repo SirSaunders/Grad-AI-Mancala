@@ -1,218 +1,108 @@
-import copy
+"""
+A simple example for Reinforcement Learning using table lookup Q-learning method.
+An agent "o" is on the left of a 1 dimensional world, the treasure is on the rightmost location.
+Run this program and to see how the agent will improve its strategy of finding the treasure.
 
-board = {
-    "board": {
-        "space": [{
-            "type": "mancala",
-            "marbles": 0,
-            "space_id": 0,
-            "player": 1
-        },
-            {
-                "type": "normal",
-                "marbles": 4,
-                "space_id": 1,
-                "player": 0
-            },
-            {
-                "type": "normal",
-                "marbles": 4,
-                "space_id": 2,
-                "player": 0
-            },
-            {
-                "type": "normal",
-                "marbles": 4,
-                "space_id": 3,
-                "player": 0
-            },
-            {
-                "type": "normal",
-                "marbles": 4,
-                "space_id": 4,
-                "player": 0
-            },
-            {
-                "type": "normal",
-                "marbles": 4,
-                "space_id": 5,
-                "player": 0
-            },
-            {
-                "type": "normal",
-                "marbles": 4,
-                "space_id": 6,
-                "player": 0
-            },
-            {
-                "type": "mancala",
-                "marbles": 0,
-                "space_id": 7,
-                "player": 0
-            },
-            {
-                "type": "normal",
-                "marbles": 4,
-                "space_id": 8,
-                "player": 1
-            },
-            {
-                "type": "normal",
-                "marbles": 4,
-                "space_id": 9,
-                "player": 1
-            },
-            {
-                "type": "normal",
-                "marbles": 4,
-                "space_id": 10,
-                "player": 1
-            },
-            {
-                "type": "normal",
-                "marbles": 4,
-                "space_id": 11,
-                "player": 1
-            },
-            {
-                "type": "normal",
-                "marbles": 4,
-                "space_id": 12,
-                "player": 1
-            },
-            {
-                "type": "normal",
-                "marbles": 4,
-                "space_id": 13,
-                "player": 1
-            }
-        ]
-    }
-}
+View more on my tutorial page: https://morvanzhou.github.io/tutorials/
+"""
 
-boardLength = 14
-# AI and Human's mancala positions
-mancalaAI = 0
-mancalaHuman = 7 
+import numpy as np
+import pandas as pd
+import time
 
-def go_again_points(move, board):
-    landedSpace = board[move[0]]
-    if landedSpace['type'] == 'mancala':
-        return 30
-    return 0
+np.random.seed(2)  # reproducible
 
 
-def empty_space_points(move, board):
-    landedSpace = board[move[0]]
-    if landedSpace['type'] != 'mancala' and landedSpace['marbles'] == 0:
-        accrossSpace = board[int((move[0] + (boardLength / 2)) % boardLength)]
-        return accrossSpace['marbles'] * 15
+N_STATES = 14   # the length of the 1 dimensional world
+ACTIONS = [1, 2, 3, 4, 5, 6]     # available actions
+EPSILON = 0.9   # greedy police
+ALPHA = 0.1     # learning rate
+GAMMA = 0.9    # discount factor
+MAX_EPISODES = 13   # maximum episodes
+FRESH_TIME = 0.3    # fresh time for one move
+
+
+def build_q_table(n_states, actions):
+    table = pd.DataFrame(
+        np.zeros((n_states, len(actions))),     # q_table initial values
+        columns=actions,    # actions's name
+    )
+    # print(table)    # show table
+    return table
+
+
+def choose_action(state, q_table):
+    # This is how to choose an action
+    state_actions = q_table.iloc[state, :]
+    if (np.random.uniform() > EPSILON) or ((state_actions == 0).all()):  # act non-greedy or state-action have no value
+        action_name = np.random.choice(ACTIONS)
+    else:   # act greedy
+        action_name = state_actions.idxmax()    # replace argmax to idxmax as argmax means a different function in newer version of pandas
+    return action_name
+
+
+def get_env_feedback(S, A):
+    print(A)
+    # This is how agent will interact with the environment
+    if A == 'right':    # move right
+        if S == N_STATES - 2:   # terminate
+            S_ = 'terminal'
+            R = 1
+        else:
+            S_ = S + 1
+            R = 0
+    else:   # move left
+        R = 0
+        if S == 0:
+            S_ = S  # reach the wall
+        else:
+            S_ = S - 1
+    return S_, R
+
+
+def update_env(S, episode, step_counter):
+    # This is how environment be updated
+    env_list = ['-']*(N_STATES-1) + ['T']   # '---------T' our environment
+    if S == 'terminal':
+        interaction = 'Episode %s: total_steps = %s' % (episode+1, step_counter)
+        print('\r{}'.format(interaction), end='')
+        time.sleep(2)
+        print('\r                                ', end='')
     else:
-        return 0
+        env_list[S] = 'o'
+        interaction = ''.join(env_list)
+        print('\r{}'.format(interaction), end='')
+        time.sleep(FRESH_TIME)
 
 
-def increment_mancala_points(move):
-    return 10 * move[1]
+def rl():
+    # main part of RL loop
+    q_table = build_q_table(N_STATES, ACTIONS)
+    for episode in range(MAX_EPISODES):
+        step_counter = 0
+        S = 0
+        is_terminated = False
+        update_env(S, episode, step_counter)
+        while not is_terminated:
 
-
-def getMove(pos, marbles, player, board):
-    updatedBoard = copy.deepcopy(board)
-    incrementedMancala = 0
-    currentPos = pos
-    yourSideScore = 0
-    updatedBoard[currentPos]['marbles'] = 0
-    for i in range(marbles):
-        currentPos = (currentPos + 1) % boardLength
-        space = board[currentPos]
-        if space['player'] == player:
-            yourSideScore += 1
-        if (space['type'] == 'mancala'):
-            if space['player'] == player:
-                incrementedMancala += 1
-                updatedBoard[currentPos]['marbles'] += 1
+            A = choose_action(S, q_table)
+            S_, R = get_env_feedback(S, A)  # take action & get next state and reward
+            q_predict = q_table.loc[S, A]
+            if S_ != 'terminal':
+                q_target = R + GAMMA * q_table.iloc[S_, :].max()   # next state is not terminal
             else:
-                currentPos = (currentPos + 1) % boardLength
-        else:
-            updatedBoard[currentPos]['marbles'] += 1
+                q_target = R     # next state is terminal
+                is_terminated = True    # terminate this episode
 
-    return currentPos, incrementedMancala, yourSideScore, updatedBoard
+            q_table.loc[S, A] += ALPHA * (q_target - q_predict)  # update
+            S = S_  # move to next state
 
-# get a more accurate score of which player is in a better position to win
-# include method to get a better "score" of game: 2 * (marbles in mancala) + sum of marbles on your side
-def getBetterScore(board):
-    # initialized to current mancala marbles count
-    player1Score = board['space'][mancalaHuman]['marbles']
-    player2Score = board['space'][mancalaAI]['marbles']
-    for space in board:
-        if space['player'] == 0:
-            player1Score += space['marbles']
-        if space['player'] == 1:
-            player2Score += space['marbles']
-    return player1Score, player2Score
-
-def findPoints(moveFromPos, board):
-    # print('board')
-    # print(board)
-    # print('move from')
-    # print(moveFromPos)
-    moveSpace = board[moveFromPos]
-    marbles = moveSpace['marbles']
-    # move = getMove(moveSpace['space_id'], marbles, moveSpace['player'], board)
-    move = getMove(moveSpace['space_id'], marbles, 0, board)
-    incrementMancalaPoints = increment_mancala_points(move)
-    goAgainPoints = go_again_points(move, board)
-    emptySpacePoints = empty_space_points(move, board)
-    yourSideScore = move[2]
-    # print('incrementMancalaPoints')
-    # print(incrementMancalaPoints)
-    # print('goAgainPoints')
-    # print(goAgainPoints)
-    # print('emptySpacePoints')
-    # print(emptySpacePoints)
-    # print('yourSideScore')
-    # print(yourSideScore)
-    # print('move info')
-    # print(move)
-    # print('total move score')
-    return (incrementMancalaPoints + goAgainPoints + emptySpacePoints + yourSideScore), move[3]
+            update_env(S, episode, step_counter+1)
+            step_counter += 1
+    return q_table
 
 
-def searchMovePoints(board, cnt, pos):
-    (points, updatedboard) = findPoints(pos, board)
-    bestPoints = 0
-    worstPoints = 999999
-    if cnt > -1:
-        return points
-    else:
-        if ((cnt + 1) % 2) == 1: #max
-            for i in range(1, 7):
-                points = searchMovePoints(updatedboard, cnt + 1, i)
-                if points > bestPoints:
-                    bestPoints = points
-            print('best:max')
-            print(bestPoints)
-            return points + bestPoints
-        else:
-            for i in range(8, 13):#min
-                points = searchMovePoints(updatedboard, cnt + 1, i)
-                if points < worstPoints:
-                    worstPoints = points
-            print('worst:min')
-            print(worstPoints)
-            return points + worstPoints
-
-
-def findMove(board):
-    bestPoints = 0
-    bestMove = 1
-    for i in range(1, 7):
-        points = searchMovePoints(board['board']['space'], 0, i)
-        if points > bestPoints:
-            bestPoints = points
-            bestMove = i
-    return bestMove, bestPoints
-
-
-if __name__ == '__main__':
-    print(findMove(board))
-    # print(searchMovePoints(board['board']['space'], 0, 1))
+if __name__ == "__main__":
+    q_table = rl()
+    print('\r\nQ-table:\n')
+    print(q_table)
