@@ -35,6 +35,30 @@ def empty_space_points(move, board):
 def increment_mancala_points(move):
     return 10 * move[1]
 
+# return the player with the higher mancala score and the score itself
+def findWinner(board):
+    maxScore = 0
+    player1Score = board['space'][mancalaHuman]['marbles']
+    player2Score = board['space'][mancalaAI]['marbles']
+    if player1Score > player2Score:
+        maxScore = player1Score
+        winner = "Human"
+    elif player2Score > player1Score:
+        maxScore = player2Score
+        winner = "AI"
+    else:
+        maxScore = player1Score
+        winner = "Tie"
+    return maxScore, winner
+
+# determine if either row/side has no marbles left
+# based on JSON, range values will be (1, 7) or (8, 13)
+def isGameDone(board, rangeStart, rangeEnd):
+    for i in range(rangeStart, rangeEnd):
+        if board['space'][i]['marbles'] != 0:
+            return False
+    # at this point one side is empty, so there will be a winner (or a tie)
+    return True
 
 def getMove(pos, marbles, player, board):
     updatedBoard = copy.deepcopy(board)
@@ -43,6 +67,8 @@ def getMove(pos, marbles, player, board):
     yourSideScore = 0
     player=board[pos]['player']
     updatedBoard[currentPos]['marbles'] = 0
+    winnerDetails = None
+
     if marbles == 0:
         return pos, 0, 0, board
     for i in range(marbles):
@@ -72,7 +98,10 @@ def getMove(pos, marbles, player, board):
             updatedBoard[accrossSpace['space_id']]['marbles'] = 0
             updatedBoard[currentPos]['marbles'] = 0
 
-    return currentPos, incrementedMancala, yourSideScore, updatedBoard
+    if isGameDone(board, 1, 7) or isGameDone(board, 8, 13):
+        winnerDetails = findWinner(board)
+
+    return currentPos, incrementedMancala, yourSideScore, updatedBoard, winnerDetails
 
 # get a more accurate score of which player is in a better position to win
 # 2 * (marbles in mancala) + sum of marbles on your side
@@ -172,6 +201,7 @@ def updateBoard():
     if go_again_points(landed, board) > 0:
         go_again = True
     json['go_again'] = go_again
+    json['winner'] = landed[4]
     return json
 
 @app.route('/get_move', methods=['POST'], cors=cors_config)
