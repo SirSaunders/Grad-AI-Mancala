@@ -13,6 +13,97 @@ boardLength = 14
 mancalaAI = 0
 mancalaHuman = 7
 
+
+board = {
+    "board": {
+        "space": [{
+            "type": "mancala",
+            "marbles": 0,
+            "space_id": 0,
+            "player": 1
+        },
+            {
+                "type": "normal",
+                "marbles": 4,
+                "space_id": 1,
+                "player": 0
+            },
+            {
+                "type": "normal",
+                "marbles": 4,
+                "space_id": 2,
+                "player": 0
+            },
+            {
+                "type": "normal",
+                "marbles": 4,
+                "space_id": 3,
+                "player": 0
+            },
+            {
+                "type": "normal",
+                "marbles": 4,
+                "space_id": 4,
+                "player": 0
+            },
+            {
+                "type": "normal",
+                "marbles": 4,
+                "space_id": 5,
+                "player": 0
+            },
+            {
+                "type": "normal",
+                "marbles": 4,
+                "space_id": 6,
+                "player": 0
+            },
+            {
+                "type": "mancala",
+                "marbles": 0,
+                "space_id": 7,
+                "player": 0
+            },
+            {
+                "type": "normal",
+                "marbles": 4,
+                "space_id": 8,
+                "player": 1
+            },
+            {
+                "type": "normal",
+                "marbles": 4,
+                "space_id": 9,
+                "player": 1
+            },
+            {
+                "type": "normal",
+                "marbles": 4,
+                "space_id": 10,
+                "player": 1
+            },
+            {
+                "type": "normal",
+                "marbles": 4,
+                "space_id": 11,
+                "player": 1
+            },
+            {
+                "type": "normal",
+                "marbles": 4,
+                "space_id": 12,
+                "player": 1
+            },
+            {
+                "type": "normal",
+                "marbles": 4,
+                "space_id": 13,
+                "player": 1
+            }
+        ]
+    }
+}
+
 def go_again_points(move, board):
     landedSpace = board[move[0]]
     if landedSpace['type'] == 'mancala':
@@ -22,11 +113,11 @@ def go_again_points(move, board):
 
 def empty_space_points(move, board):
     landedSpace = board[move[0]]
-    player=board[move[0]]['player']
+    player = board[move[0]]['player']
     score = 0
     if landedSpace['type'] != 'mancala' and landedSpace['marbles'] == 0 and landedSpace['player'] == player:
         accrossSpace = board[int((move[0] + (boardLength / 2)) % boardLength)]
-        if(player == com_player):
+        if (player == com_player):
             score = accrossSpace['marbles'] * 10
 
     return score
@@ -51,21 +142,17 @@ def findWinner(board):
         winner = "Tie"
     return maxScore, winner
 
-# determine if either row/side has no marbles left
-# based on JSON, range values will be (1, 7) or (8, 13)
-def isGameDone(board, rangeStart, rangeEnd):
-    for i in range(rangeStart, rangeEnd):
-        if board['space'][i]['marbles'] != 0:
-            return False
-    # at this point one side is empty, so there will be a winner (or a tie)
-    return True
+def getMove2(pos, board):
+    space = board[pos]
+    return getMove(pos, space['marbles'], board)
 
-def getMove(pos, marbles, player, board):
+
+def getMove(pos, marbles, board):
     updatedBoard = copy.deepcopy(board)
     incrementedMancala = 0
     currentPos = pos
     yourSideScore = 0
-    player=board[pos]['player']
+    player = board[pos]['player']
     updatedBoard[currentPos]['marbles'] = 0
     winnerDetails = None
 
@@ -89,9 +176,9 @@ def getMove(pos, marbles, player, board):
             updatedBoard[currentPos]['marbles'] += 1
     landedSpace = updatedBoard[currentPos]
     if landedSpace['type'] != 'mancala' and landedSpace['marbles'] == 1 and landedSpace['player'] == player:
-        accrossSpace = updatedBoard[int((boardLength - currentPos ) % boardLength)]
-        if(accrossSpace['marbles']>0):
-            if(player == 0):
+        accrossSpace = updatedBoard[int((boardLength - currentPos) % boardLength)]
+        if (accrossSpace['marbles'] > 0):
+            if (player == 0):
                 updatedBoard[7]['marbles'] += accrossSpace['marbles'] + 1
             else:
                 updatedBoard[0]['marbles'] += accrossSpace['marbles'] + 1
@@ -104,17 +191,38 @@ def getMove(pos, marbles, player, board):
     return currentPos, incrementedMancala, yourSideScore, updatedBoard, winnerDetails
 
 # get a more accurate score of which player is in a better position to win
-# 2 * (marbles in mancala) + sum of marbles on your side
-def getBetterScore(board):
+# include method to get a better "score" of game: 2 * (marbles in mancala) + sum of marbles on your side
+def getBoardScore(board):
     # initialized to current mancala marbles count
-    player1Score = board['space'][mancalaHuman]['marbles']
-    player2Score = board['space'][mancalaAI]['marbles']
+    # player1Score = board['space'][mancalaHuman]['marbles']
+    # player2Score = board['space'][mancalaAI]['marbles']
+    mancala1 = 0.5*board[mancalaAI]['marbles']
+    mancala2 = 0.5*board[mancalaHuman]['marbles']
+    player1Score = mancala1
+    player2Score = mancala2
+    nonMancalPointsPlayer1 = 0 #AI
+    nonMancalPointsPlayer2 = 0
+
     for space in board:
         if space['player'] == 0:
             player1Score += space['marbles']
-        elif space['player'] == 1:
+            if space['type'] == 'normal':
+                nonMancalPointsPlayer1 += space['marbles']
+        if space['player'] == 1:
             player2Score += space['marbles']
+            if space['type'] == 'normal':
+                nonMancalPointsPlayer2 += space['marbles']
+    if nonMancalPointsPlayer1 == 0 or nonMancalPointsPlayer2 == 0:
+            if player1Score - mancala1 < 24:
+                player1Score = -99999999
+            else:
+                player1Score = 9999999
+            if player2Score - mancala2 < 24:
+                player2Score = -99999999
+            else:
+                player2Score = 9999999
     return player1Score, player2Score
+
 
 def findPoints(moveFromPos, board):
     # print('board')
@@ -124,7 +232,7 @@ def findPoints(moveFromPos, board):
     moveSpace = board[moveFromPos]
     marbles = moveSpace['marbles']
     # move = getMove(moveSpace['space_id'], marbles, moveSpace['player'], board)
-    move = getMove(moveSpace['space_id'], marbles, 0, board)
+    move = getMove(moveSpace['space_id'], marbles, board)
     incrementMancalaPoints = increment_mancala_points(move)
     goAgainPoints = go_again_points(move, board)
     emptySpacePoints = empty_space_points(move, board)
@@ -147,29 +255,58 @@ def findPoints(moveFromPos, board):
 def searchMovePoints(board, cnt, pos, score):
     (points, updatedboard) = findPoints(pos, board)
     worstPoints = 999999
-    maxDepth = 6
+    maxDepth = 3
     bestPoints = 0
-
+    if (go_again_points([pos], updatedboard) > 0):
+        cnt -= 1  # increment back 1 so when it is incremented up no changes occurs
     if cnt >= maxDepth:
         return points
     else:
         if ((cnt + 1) % 2) == 1:  # max
             for i in range(1, 7):
-                points = searchMovePoints(updatedboard, cnt + 1, i,points)
+                points = searchMovePoints(updatedboard, cnt + 1, i, points)
                 if points > bestPoints:
-                    bestPoints = points * (maxDepth - cnt+1)
+                    bestPoints = points * (maxDepth - cnt + 1)
             # print('best:max')
             # print(bestPoints)
             return bestPoints + score
         else:
             for i in range(8, 13):  # min
 
-                points = searchMovePoints(updatedboard, cnt + 1, i,points)
+                points = searchMovePoints(updatedboard, cnt + 1, i, points)
                 if points < bestPoints:
                     bestPoints = points
             # print('worst:min')
             # print(worstPoints)
             return bestPoints + score
+
+
+def minMaxMove(board, cnt, pos):
+    updatedboard = getMove2(pos, board)[3]
+
+    maxDepth = 4
+    bestPoints = 0
+    worstPoints = 999999
+
+    if (go_again_points([pos], updatedboard) > 0):
+        cnt -= 1  # increment back 1 so when it is incremented up no changes occurs
+    if cnt >= maxDepth:
+        points = getBoardScore(updatedboard)[0]
+        return points
+    else:
+        if ((cnt + 1) % 2) == 1:  # max
+            for i in range(1, 7):
+
+                points = minMaxMove(updatedboard, cnt + 1, i)
+                if points > bestPoints:
+                    bestPoints = points
+            return bestPoints
+        else:
+            for i in range(8, 13):  # min
+                points = minMaxMove(updatedboard, cnt + 1, i)
+                if worstPoints > points:
+                    worstPoints = points
+            return worstPoints
 
 
 def findMove(board):
@@ -180,6 +317,7 @@ def findMove(board):
             points = -1
         else:
             points = searchMovePoints(board['board']['space'], 0, i, 0)
+            points += minMaxMove(board['board']['space'], 0, i)*4
             print(points)
         if points > bestPoints:
             bestPoints = points
@@ -194,7 +332,7 @@ def updateBoard():
     app.log.debug(json)
     board = json['board']['space']
     move = json['move']
-    landed = getMove(move, board[move]['marbles'], 1, board)
+    landed = getMove(move, board[move]['marbles'], board)
     json = {"board": {
         "space": landed[3]}}
     go_again = False
@@ -204,6 +342,7 @@ def updateBoard():
     json['winner'] = landed[4]
     return json
 
+
 @app.route('/get_move', methods=['POST'], cors=cors_config)
 def updateBoard():
     app.log.debug('json')
@@ -211,7 +350,7 @@ def updateBoard():
     board = json['board']['space']
     move = findMove(json)
     movePos = move[0]
-    landed = getMove(movePos, board[movePos]['marbles'], 0, board)
+    landed = getMove(movePos, board[movePos]['marbles'], board)
     json = {"board": {
         "space": landed[3]}}
     go_again = False
@@ -221,3 +360,5 @@ def updateBoard():
     print(move)
 
     return json
+
+findMove(board)
