@@ -14,94 +14,7 @@ mancalaAI = 0
 mancalaHuman = 7
 
 board = {
-    "board": {
-        "space": [{
-            "type": "mancala",
-            "marbles": 0,
-            "space_id": 0,
-            "player": 1
-        },
-            {
-                "type": "normal",
-                "marbles": 4,
-                "space_id": 1,
-                "player": 0
-            },
-            {
-                "type": "normal",
-                "marbles": 4,
-                "space_id": 2,
-                "player": 0
-            },
-            {
-                "type": "normal",
-                "marbles": 4,
-                "space_id": 3,
-                "player": 0
-            },
-            {
-                "type": "normal",
-                "marbles": 4,
-                "space_id": 4,
-                "player": 0
-            },
-            {
-                "type": "normal",
-                "marbles": 4,
-                "space_id": 5,
-                "player": 0
-            },
-            {
-                "type": "normal",
-                "marbles": 4,
-                "space_id": 6,
-                "player": 0
-            },
-            {
-                "type": "mancala",
-                "marbles": 0,
-                "space_id": 7,
-                "player": 0
-            },
-            {
-                "type": "normal",
-                "marbles": 0,
-                "space_id": 8,
-                "player": 1
-            },
-            {
-                "type": "normal",
-                "marbles": 0,
-                "space_id": 9,
-                "player": 1
-            },
-            {
-                "type": "normal",
-                "marbles": 0,
-                "space_id": 10,
-                "player": 1
-            },
-            {
-                "type": "normal",
-                "marbles": 0,
-                "space_id": 11,
-                "player": 1
-            },
-            {
-                "type": "normal",
-                "marbles": 0,
-                "space_id": 12,
-                "player": 1
-            },
-            {
-                "type": "normal",
-                "marbles": 0,
-                "space_id": 13,
-                "player": 1
-            }
-        ]
-    }
-}
+    "board": {"space": [{"player": 1, "space_id": 0, "type": "mancala", "marbles": 24}, {"player": 0, "space_id": 1, "type": "normal", "marbles": 0}, {"player": 0, "space_id": 2, "type": "normal", "marbles": 0}, {"player": 0, "space_id": 3, "type": "normal", "marbles": 0}, {"player": 0, "space_id": 4, "type": "normal", "marbles": 0}, {"player": 0, "space_id": 5, "type": "normal", "marbles": 0}, {"player": 0, "space_id": 6, "type": "normal", "marbles": 1}, {"player": 0, "space_id": 7, "type": "mancala", "marbles": 22}, {"player": 1, "space_id": 8, "type": "normal", "marbles": 0}, {"player": 1, "space_id": 9, "type": "normal", "marbles": 0}, {"player": 1, "space_id": 10, "type": "normal", "marbles": 0}, {"player": 1, "space_id": 11, "type": "normal", "marbles": 0}, {"player": 1, "space_id": 12, "type": "normal", "marbles": 0}, {"player": 1, "space_id": 13, "type": "normal", "marbles": 1}]}}
 
 
 def go_again_points(move, board):
@@ -186,8 +99,7 @@ def getMove(pos, marbles, board):
                 updatedBoard[0]['marbles'] += accrossSpace['marbles'] + 1
             updatedBoard[accrossSpace['space_id']]['marbles'] = 0
             updatedBoard[currentPos]['marbles'] = 0
-    boardScore = getBoardScore(board)
-    winnerDetails = None
+    boardScore = getBoardScore(updatedBoard)
     if boardScore[0] == 9999999 or boardScore[1] == 9999999:
         if boardScore[0] == 9999999 and boardScore[1] == 9999999:
             winnerDetails = 'tie'
@@ -347,10 +259,10 @@ def updateBoard():
     json = {"board": {
         "space": landed[3]}}
     go_again = False
+    json['winner'] = landed[4]
     if go_again_points(landed, board) > 0:
         go_again = True
     json['go_again'] = go_again
-    json['winner'] = landed[4]
     return json
 
 
@@ -365,10 +277,11 @@ def updateBoard():
     json = {"board": {
         "space": landed[3]}}
     go_again = False
+    json['winner'] = landed[4]
     if go_again_points(landed, board) > 0:
         go_again = True
     json['go_again'] = go_again
-    json['winner'] = landed[4]
+
 
     print(move)
 
