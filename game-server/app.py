@@ -265,7 +265,7 @@ def searchMovePoints(board, cnt, pos, score):
 def minMaxMove(board, cnt, pos):
     updatedboard = getMove2(pos, board)[3]
 
-    maxDepth = 5
+    maxDepth = 4
     bestPoints = 0
     worstPoints = 999999
 
@@ -299,7 +299,6 @@ def findMove(board):
         else:
             points = searchMovePoints(board['board']['space'], 0, i, 0)
             points += minMaxMove(board['board']['space'], 0, i)*4
-
             print(points)
         if points > bestPoints:
             bestPoints = points
@@ -341,7 +340,5 @@ def updateBoard():
     print(move)
 
     return json
-
-
 
 findMove(board)
