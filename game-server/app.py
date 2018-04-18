@@ -223,8 +223,8 @@ def findMove(board):
         if not (board['board']['space'][i]['marbles'] > 0):
             points = -1
         else:
-            depthSearch = 4
-            depthMinMax = 5
+            depthSearch = 3
+            depthMinMax = 4
             points = searchMovePoints(board['board']['space'], 0, i, 0, depthSearch)
             points += minMaxMove(board['board']['space'], 0, i, depthMinMax) * depthSearch
             print(points)
