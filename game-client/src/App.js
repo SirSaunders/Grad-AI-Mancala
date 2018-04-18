@@ -226,7 +226,7 @@ class App extends Component {
                         <button onClick={() => this.moveSelected(13)}>{this.state.board.space[13].marbles}</button>
                     </div>
 
-                    <div>  {(this.state.isAiTurn) ?
+                    <div>  {(this.state.isAiTurn && this.state.winner == null) ?
                         <img width={100} src="https://media.giphy.com/media/xTk9ZvMnbIiIew7IpW/giphy.gif" />
                         :
                         (this.state.winner == null)?
