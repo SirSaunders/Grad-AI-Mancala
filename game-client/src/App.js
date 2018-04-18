@@ -1,5 +1,10 @@
+/**
+ # @Authors: Johnathan Saunders && Jatin Bhakta
+# @Date: 4/18/18
+# @Class: Graduate AI Class
+ */
+
 import React, { Component } from 'react';
-// import logo from './mancala_logo.jpg';
 import './App.css';
 import axios from 'axios'
 class App extends Component {
@@ -102,7 +107,10 @@ class App extends Component {
         this.moveSelected = this.moveSelected.bind(this);
 
     }
-
+    /**
+     * sends the current board state to server to get AI's move
+     * Then updates the board state
+     * */
     aiMove() {
         if(this.state.winner == null) {
             this.setState({"isAiTurn": true})
@@ -120,11 +128,10 @@ class App extends Component {
                 .then(function (response) {
                     console.log(response);
                     var board = this.state.board
-
                     board.space = response.data.board.space
-                    console.log(board)
+                    console.log(board) // prints returned board state
                     this.setState({board: board, winner: response.data.winner})
-                    if (response.data.go_again) {
+                    if (response.data.go_again) { // call endpoint again if AI can go again
                         this.aiMove()
                     } else {
                         this.setState({"isAiTurn": false})
@@ -135,7 +142,10 @@ class App extends Component {
                 }.bind(this));
         }
     }
-
+    /**
+     * sends move user selected to end point along with current board's state
+     * then updates the board state on response
+     * */
     moveSelected(move) {
         if (!this.state.isAiTurn && this.state.winner == null) {
 
@@ -157,28 +167,27 @@ class App extends Component {
                     board.space = response.data.board.space
                     console.log(board)
                     this.setState({ board: board, winner:response.data.winner })
-                    if (!response.data.go_again) {
+                    if (!response.data.go_again) { // let ai go if player is not allowed to go again
                         this.aiMove()
                     }
-                    // display DialogBox with response.data.landed
                 }.bind(this))
                 .catch(function (error) {
                     console.log(error);
                 }.bind(this));
-
-            // isGameDone ? :
         }
 
     }
-
-    getButtons(rangestart, rangeEnd) {
-        var returnBtns = [];
-        for (var i = rangestart; i <= rangeEnd; i++) {
-            returnBtns.push(<button id={i} key={i} onClick={() => this.moveSelected(10)}>{this.state.board.space[i].marbles}</button>)
-        }
-        return returnBtns;
-
-    }
+/*
+the below commented out code is still under developpment in an attempt to replace the button's code duplication
+*/
+    // getButtons(rangestart, rangeEnd) {
+    //     var returnBtns = [];
+    //     for (var i = rangestart; i <= rangeEnd; i++) {
+    //         returnBtns.push(<button id={i} key={i} onClick={() => this.moveSelected(10)}>{this.state.board.space[i].marbles}</button>)
+    //     }
+    //     return returnBtns;
+    //
+    // }
 
     componentDidMount() {
 
@@ -189,8 +198,7 @@ class App extends Component {
         return (
 
             <div>
-                <h1 style={{ "text-align": "center",
-                                marginTop: "15vh"}}> AI Mancala </h1>
+                <h1 style={{ "text-align": "center", marginTop: "15vh"}}> AI Mancala </h1>
 
             <div className="App" style={{
                     'width': '400px',
