@@ -1,11 +1,17 @@
+############################
+# @Authors: Johnathan Saunders && Jatin Bhakta
+# @Date: 4/18/18
+# @Class: Graduate AI Class
+###########################
+
+
+
 from chalice import Chalice
-
-cors_config = True
-
-app = Chalice(app_name='game-server')
-
 import copy
 
+cors_config = True
+app = Chalice(app_name='game-server')
+# AI player's ID
 com_player = 0
 
 boardLength = 14
@@ -13,10 +19,10 @@ boardLength = 14
 mancalaAI = 0
 mancalaHuman = 7
 
-board = {
-    "board": {"space": [{"player": 1, "space_id": 0, "type": "mancala", "marbles": 24}, {"player": 0, "space_id": 1, "type": "normal", "marbles": 0}, {"player": 0, "space_id": 2, "type": "normal", "marbles": 0}, {"player": 0, "space_id": 3, "type": "normal", "marbles": 0}, {"player": 0, "space_id": 4, "type": "normal", "marbles": 0}, {"player": 0, "space_id": 5, "type": "normal", "marbles": 0}, {"player": 0, "space_id": 6, "type": "normal", "marbles": 1}, {"player": 0, "space_id": 7, "type": "mancala", "marbles": 22}, {"player": 1, "space_id": 8, "type": "normal", "marbles": 0}, {"player": 1, "space_id": 9, "type": "normal", "marbles": 0}, {"player": 1, "space_id": 10, "type": "normal", "marbles": 0}, {"player": 1, "space_id": 11, "type": "normal", "marbles": 0}, {"player": 1, "space_id": 12, "type": "normal", "marbles": 0}, {"player": 1, "space_id": 13, "type": "normal", "marbles": 1}]}}
 
-
+# Checks if the move would allow the player to go again
+# if it would allow a player to go again return points > 0
+# #else 0 if they would not go again
 def go_again_points(move, board):
     landedSpace = board[move[0]]
     if landedSpace['type'] == 'mancala':
@@ -24,6 +30,10 @@ def go_again_points(move, board):
     return 0
 
 
+# checks if the player has landed in an empty space
+# and if they would be able to steal marbles from the opponent
+# if they can not do both return zero
+# if they can return score > 0
 def empty_space_points(move, board):
     landedSpace = board[move[0]]
     player = board[move[0]]['player']
@@ -36,32 +46,25 @@ def empty_space_points(move, board):
     return score
 
 
+## returns points > 0 if mancala was points have increased
 def increment_mancala_points(move):
     return 10 * move[1]
 
 
-# return the player with the higher mancala score and the score itself
-def findWinner(board):
-    maxScore = 0
-    player1Score = board['space'][mancalaHuman]['marbles']
-    player2Score = board['space'][mancalaAI]['marbles']
-    if player1Score > player2Score:
-        maxScore = player1Score
-        winner = "Human"
-    elif player2Score > player1Score:
-        maxScore = player2Score
-        winner = "AI"
-    else:
-        maxScore = player1Score
-        winner = "Tie"
-    return maxScore, winner
-
-
-def getMove2(pos, board):
+# added as a shorter way to use GetMove
+# #this was done because pythong does not do overloading
+# #and adding logic for default values would have been messy
+def getMoveQuick(pos, board):
     space = board[pos]
     return getMove(pos, space['marbles'], board)
 
 
+# updates the game board given the current bard and a move
+# @return currentPos will return current postion after board update
+# @return incrementedMancala will return how many times the player that moved manacala was incremented
+# @return yourSideScore will return the number of marbles you placed on your side - marbles placed on opponent's side
+# @return updatedBoard will return updated board after move
+# @ return winnerDetails will return whether anyone has one and if so who won or tie
 def getMove(pos, marbles, board):
     updatedBoard = copy.deepcopy(board)
     incrementedMancala = 0
@@ -114,7 +117,8 @@ def getMove(pos, marbles, board):
 
 
 # get a more accurate score of which player is in a better position to win
-# include method to get a better "score" of game: 2 * (marbles in mancala) + sum of marbles on your side
+# returns board state scores for each player
+# include method to get a better "score" of game: 1.5 * (marbles in mancala) + sum of marbles on your side
 def getBoardScore(board):
     # initialized to current mancala marbles count
     # player1Score = board['space'][mancalaHuman]['marbles']
@@ -147,38 +151,22 @@ def getBoardScore(board):
     return player1Score, player2Score
 
 
+# @return  the points for a given move for local search
 def findPoints(moveFromPos, board):
-    # print('board')
-    # print(board)
-    # print('move from')
-    # print(moveFromPos)
     moveSpace = board[moveFromPos]
     marbles = moveSpace['marbles']
-    # move = getMove(moveSpace['space_id'], marbles, moveSpace['player'], board)
     move = getMove(moveSpace['space_id'], marbles, board)
     incrementMancalaPoints = increment_mancala_points(move)
     goAgainPoints = go_again_points(move, board)
     emptySpacePoints = empty_space_points(move, board)
     yourSideScore = move[2]
-    # print('incrementMancalaPoints')
-    # print(incrementMancalaPoints)
-    # print('goAgainPoints')
-    # print(goAgainPoints)
-    # print('emptySpacePoints')
-    # print(emptySpacePoints)
-    # print('yourSideScore')
-    # print(yourSideScore)
-    # print('move info')
-    # print(move)
-    # print('total move score')
-
     return (incrementMancalaPoints + goAgainPoints + yourSideScore + emptySpacePoints), move[3]
 
 
-def searchMovePoints(board, cnt, pos, score):
+# Traverses tree for local search, returns best points found
+def searchMovePoints(board, cnt, pos, score, maxDepth):
     (points, updatedboard) = findPoints(pos, board)
     worstPoints = 999999
-    maxDepth = 3
     bestPoints = 0
     if (go_again_points([pos], updatedboard) > 0):
         cnt -= 1  # increment back 1 so when it is incremented up no changes occurs
@@ -187,30 +175,23 @@ def searchMovePoints(board, cnt, pos, score):
     else:
         if ((cnt + 1) % 2) == 1:  # max
             for i in range(1, 7):
-                points = searchMovePoints(updatedboard, cnt + 1, i, points)
+                points = searchMovePoints(updatedboard, cnt + 1, i, points, maxDepth)
                 if points > bestPoints:
                     bestPoints = points * (maxDepth - cnt + 1)
-            # print('best:max')
-            # print(bestPoints)
             return bestPoints + score
         else:
             for i in range(8, 13):  # min
-
-                points = searchMovePoints(updatedboard, cnt + 1, i, points)
+                points = searchMovePoints(updatedboard, cnt + 1, i, points, maxDepth)
                 if points < bestPoints:
                     bestPoints = points
-            # print('worst:min')
-            # print(worstPoints)
             return bestPoints + score
 
 
-def minMaxMove(board, cnt, pos):
-    updatedboard = getMove2(pos, board)[3]
-
-    maxDepth = 4
+# Traverses tree for min-max, returns best points for an end state found
+def minMaxMove(board, cnt, pos, maxDepth):
+    updatedboard = getMoveQuick(pos, board)[3]
     bestPoints = 0
     worstPoints = 999999
-
     if (go_again_points([pos], updatedboard) > 0):
         cnt -= 1  # increment back 1 so when it is incremented up no changes occurs
     if cnt >= maxDepth:
@@ -220,18 +201,21 @@ def minMaxMove(board, cnt, pos):
         if ((cnt + 1) % 2) == 1:  # max
             for i in range(1, 7):
 
-                points = minMaxMove(updatedboard, cnt + 1, i)
+                points = minMaxMove(updatedboard, cnt + 1, i, maxDepth)
                 if points > bestPoints:
                     bestPoints = points
             return bestPoints
         else:
             for i in range(8, 13):  # min
-                points = minMaxMove(updatedboard, cnt + 1, i)
+                points = minMaxMove(updatedboard, cnt + 1, i, maxDepth)
                 if worstPoints > points:
                     worstPoints = points
             return worstPoints
 
 
+# finds best move AI can make
+# @return bestMove returns move chosen as best move
+# @return bestPoints returns points that bestMove had
 def findMove(board):
     bestPoints = -99999999
     bestMove = 1
@@ -239,8 +223,10 @@ def findMove(board):
         if not (board['board']['space'][i]['marbles'] > 0):
             points = -1
         else:
-            points = searchMovePoints(board['board']['space'], 0, i, 0)
-            points += minMaxMove(board['board']['space'], 0, i) * 4
+            depthSearch = 4
+            depthMinMax = 5
+            points = searchMovePoints(board['board']['space'], 0, i, 0, depthSearch)
+            points += minMaxMove(board['board']['space'], 0, i, depthMinMax) * depthSearch
             print(points)
         if points > bestPoints:
             bestPoints = points
@@ -248,6 +234,9 @@ def findMove(board):
     return bestMove, bestPoints
 
 
+# endpoint for updating the board
+# takes a board and move as an input
+# returns updated board, who won id anyone, and whether the player can go again
 @app.route('/update_board', methods=['POST'], cors=cors_config)
 def updateBoard():
     app.log.debug('json')
@@ -266,26 +255,20 @@ def updateBoard():
     return json
 
 
+# endpoint for getting the AI's move
+# takes a board as an input
+# returns updated board, who won id anyone, and whether the AI should go again
 @app.route('/get_move', methods=['POST'], cors=cors_config)
 def updateBoard():
-    app.log.debug('json')
     json = app.current_request.json_body
     board = json['board']['space']
     move = findMove(json)
     movePos = move[0]
     landed = getMove(movePos, board[movePos]['marbles'], board)
-    json = {"board": {
-        "space": landed[3]}}
+    json = {"board": {"space": landed[3]}}
     go_again = False
     json['winner'] = landed[4]
     if go_again_points(landed, board) > 0:
         go_again = True
     json['go_again'] = go_again
-
-
-    print(move)
-
     return json
-
-
-findMove(board)
