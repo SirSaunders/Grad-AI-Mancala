@@ -102,8 +102,7 @@ class App extends Component {
             "isAiTurn": false,
             "winner": null
         }
-
-        this.getButtons = this.getButtons.bind(this);
+        //this.getButtons = this.getButtons.bind(this); //under development
         this.moveSelected = this.moveSelected.bind(this);
 
     }
